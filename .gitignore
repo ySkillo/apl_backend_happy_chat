@@ -55,3 +55,38 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# IDEs e editores
+.vs/
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.user
+*.suo
+*.userprefs
+
+# Variáveis de ambiente (o padrão acima cobre só o arquivo ".env" exato)
+.env.*
+!.env.example
+
+# Segredos e configs locais
+appsettings.Development.json
+appsettings.Local.json
+*.pfx
+
+# Bancos locais (SQLite, LocalDB)
+*.db
+*.sqlite
+*.sqlite3
+*.mdf
+*.ldf
+
+# Cobertura de testes
+coverage/
+*.coverage
+*.coveragexml
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
