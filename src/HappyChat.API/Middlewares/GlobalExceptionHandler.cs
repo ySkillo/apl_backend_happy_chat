@@ -1,0 +1,39 @@
+using HappyChat.Domain.Exceptions;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
+
+namespace HappyChat.API.Middlewares;
+
+/// <summary>
+/// Converte exceções de domínio em respostas HTTP (ProblemDetails).
+/// Qualquer outra exceção segue para o tratamento padrão (500).
+/// </summary>
+public class GlobalExceptionHandler : IExceptionHandler
+{
+    public async ValueTask<bool> TryHandleAsync(
+        HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
+    {
+        var (status, title) = exception switch
+        {
+            EmailAlreadyRegisteredException => (StatusCodes.Status409Conflict, "E-mail já cadastrado"),
+            DomainException => (StatusCodes.Status400BadRequest, "Regra de negócio violada"),
+            _ => (0, string.Empty)
+        };
+
+        if (status == 0)
+            return false;
+
+        var problem = new ProblemDetails
+        {
+            Status = status,
+            Title = title,
+            Detail = exception.Message
+        };
+
+        httpContext.Response.StatusCode = status;
+        await httpContext.Response.WriteAsJsonAsync(
+            problem, options: null, contentType: "application/problem+json", cancellationToken);
+
+        return true;
+    }
+}
