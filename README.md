@@ -27,17 +27,17 @@ dotnet restore
 dotnet build
 
 # rodar a API
-dotnet run --project src/HappyChat.Api
+dotnet run --project src/HappyChat.API
 ```
 
-A API sobe em `https://localhost:<porta>` (a porta aparece no terminal). Se o projeto tiver Swagger habilitado, a documentação fica em `/swagger`.
+A API sobe em `https://localhost:<porta>` (a porta aparece no terminal). Em ambiente Development, a documentação fica em `/swagger` e o health check em `/health`.
 
 ## Estrutura
 
 ```
 HappyChat.sln
 └── src/
-    └── HappyChat.Api/    # projeto ASP.NET Core (ponto de entrada)
+    └── HappyChat.API/    # projeto ASP.NET Core (ponto de entrada)
 ```
 
 Novos projetos (domínio, aplicação, infraestrutura, testes) serão adicionados à solution conforme a arquitetura for definida.
