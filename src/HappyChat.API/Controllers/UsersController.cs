@@ -1,11 +1,13 @@
 using HappyChat.Application.DTOs;
 using HappyChat.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HappyChat.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
@@ -17,6 +19,7 @@ public class UsersController : ControllerBase
 
     /// <summary>Cadastra um novo usuário.</summary>
     [HttpPost]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(UserResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -29,16 +32,18 @@ public class UsersController : ControllerBase
     /// <summary>Busca um usuário pelo id.</summary>
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(UserResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserResponse>> GetById(Guid id)
     {
         var user = await _userService.GetByIdAsync(id);
         return user is null ? NotFound() : Ok(user);
     }
-    
+
     /// <summary>Lista todos os usuários.</summary>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<UserResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<IEnumerable<UserResponse>>> GetAll()
     {
         var users = await _userService.GetAllAsync();

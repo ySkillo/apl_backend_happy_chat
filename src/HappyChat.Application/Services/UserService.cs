@@ -1,5 +1,6 @@
 using HappyChat.Application.DTOs;
 using HappyChat.Application.Interfaces;
+using HappyChat.Application.Mappings;
 using HappyChat.Domain.Entities;
 using HappyChat.Domain.Exceptions;
 using HappyChat.Domain.Interface;
@@ -38,27 +39,18 @@ public class UserService : IUserService
 
         await _userRepository.AddAsync(user);
 
-        return ToResponse(user);
+        return user.ToResponse();
     }
 
     public async Task<UserResponse?> GetByIdAsync(Guid id)
     {
         var user = await _userRepository.GetByIdAsync(id);
-        return user is null ? null : ToResponse(user);
+        return user is null ? null : user.ToResponse();
     }
     
     public async Task<IReadOnlyList<UserResponse>> GetAllAsync()
     {
         var users = await _userRepository.GetAllAsync();
-        return users.Select(ToResponse).ToList();
+        return users.Select(u => u.ToResponse()).ToList();
     }
-
-    private static UserResponse ToResponse(User user) => new()
-    {
-        Id = user.Id,
-        Name = user.Name,
-        Email = user.Email,
-        IsActive = user.IsActive,
-        CreatedAt = user.CreatedAt
-    };
 }
