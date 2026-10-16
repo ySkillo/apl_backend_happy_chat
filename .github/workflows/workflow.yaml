@@ -1,0 +1,95 @@
+name: CI - Happy Chat Backend
+
+on:
+  push:
+    branches: [main, homologation, development]
+  pull_request:
+    branches: [main, homologation, development]
+  workflow_dispatch:
+
+# Cancela execuções antigas da mesma branch/PR quando chega um commit novo
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_VERSION: "8.0.x"
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  SOLUTION: HappyChat.sln
+  API_PROJECT: src/HappyChat.API/HappyChat.API.csproj
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache de pacotes NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore ${{ env.SOLUTION }}
+
+      - name: Build
+        run: dotnet build ${{ env.SOLUTION }} --configuration Release --no-restore
+
+      # Ainda não há projetos de teste na solution; este passo passa a valer
+      # automaticamente assim que você adicionar um (ex.: HappyChat.Tests).
+      - name: Test
+        run: dotnet test ${{ env.SOLUTION }} --configuration Release --no-build --verbosity normal
+
+  publish:
+    name: Publish artefato
+    needs: build-and-test
+    # Só gera artefato em push (não em PR)
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache de pacotes NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Publish da API
+        run: >
+          dotnet publish ${{ env.API_PROJECT }}
+          --configuration Release
+          --output ./publish
+
+      - name: Upload do artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: happychat-api-${{ github.ref_name }}-${{ github.sha }}
+          path: ./publish
+          retention-days: 7
