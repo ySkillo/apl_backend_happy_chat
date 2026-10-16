@@ -21,16 +21,19 @@ public class UserService : IUserService
     public async Task<UserResponse> RegisterAsync(CreateUserRequest request)
     {
         var email = request.Email.Trim().ToLowerInvariant();
-
+        var perfil = request.Perfil.Trim().ToLowerInvariant();
         // Checa antes de gerar o hash, que é uma operação cara.
         if (await _userRepository.GetByEmailAsync(email) is not null)
             throw new EmailAlreadyRegisteredException();
 
+        if (await _userRepository.GetByPerfilAsync(perfil)  is not null)
+            throw new PerfilAlreadyRegisteredException();
+        
         var now = DateTime.UtcNow;
         var user = new User
         {
             Name = request.Name.Trim(),
-            Perfil = request.Perfil.Trim(),
+            Perfil = perfil,
             Email = email,
             PasswordHash = _passwordHasher.Hash(request.Password),
             IsActive = true,

@@ -59,4 +59,15 @@ public class UserRepository : IUserRepository
             return Task.FromResult<IReadOnlyList<User>>(_users.ToList());
         }
     }
+
+    public Task<User?> GetByPerfilAsync(string perfil)
+    {
+        lock (_lock)
+        {
+            return Task.FromResult(_users.FirstOrDefault(u => IsSamePerfil(u.Perfil, perfil)));
+        }
+    }
+    
+    private static bool IsSamePerfil(string a, string b) =>
+        string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 }

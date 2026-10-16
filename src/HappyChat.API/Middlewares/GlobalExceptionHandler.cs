@@ -16,6 +16,7 @@ public class GlobalExceptionHandler : IExceptionHandler
         var (status, title) = exception switch
         {
             EmailAlreadyRegisteredException => (StatusCodes.Status409Conflict, "E-mail já cadastrado"),
+            PerfilAlreadyRegisteredException => (StatusCodes.Status409Conflict, "Perfil já cadastrado"),
             InvalidCredentialsException => (StatusCodes.Status401Unauthorized, "Credenciais inválidas"),
             DomainException => (StatusCodes.Status400BadRequest, "Regra de negócio violada"),
             _ => (0, string.Empty)
