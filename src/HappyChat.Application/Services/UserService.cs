@@ -30,6 +30,7 @@ public class UserService : IUserService
         var user = new User
         {
             Name = request.Name.Trim(),
+            Perfil = request.Perfil.Trim(),
             Email = email,
             PasswordHash = _passwordHasher.Hash(request.Password),
             IsActive = true,
