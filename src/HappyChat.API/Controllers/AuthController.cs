@@ -1,7 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using HappyChat.Application.DTOs;
-using HappyChat.Application.Interfaces;
+using HappyChat.Application.Auth.DTOs;
+using HappyChat.Application.Auth.Interfaces;
+using HappyChat.Application.Users.DTOs;
+using HappyChat.Application.Users.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

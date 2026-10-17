@@ -2,7 +2,7 @@ using System.Text;
 using HappyChat.API.Middlewares;
 using HappyChat.Application;
 using HappyChat.Infrastructure;
-using HappyChat.Infrastructure.Settings;
+using HappyChat.Infrastructure.Auth.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;

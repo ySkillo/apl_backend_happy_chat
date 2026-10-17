@@ -1,5 +1,7 @@
-using HappyChat.Application.Interfaces;
-using HappyChat.Application.Services;
+using HappyChat.Application.Auth.Interfaces;
+using HappyChat.Application.Auth.Services;
+using HappyChat.Application.Users.Interfaces;
+using HappyChat.Application.Users.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HappyChat.Application;
