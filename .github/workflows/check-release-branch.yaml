@@ -1,0 +1,19 @@
+name: Check release branch
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    name: Só branches Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validar nome da branch
+        env:
+          HEAD_BRANCH: ${{ github.head_ref }}
+        run: |
+          if [[ ! "$HEAD_BRANCH" =~ ^Release[0-9]{6}$ ]]; then
+            echo "A branch '$HEAD_BRANCH' não pode ir para a main. Use o formato ReleaseDDMMAA (ex.: Release171026)."
+            exit 1
+          fi
