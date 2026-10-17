@@ -93,3 +93,63 @@ jobs:
           name: happychat-api-${{ github.ref_name }}-${{ github.sha }}
           path: ./publish
           retention-days: 7
+
+  tag-homologation:
+    name: Tag rc (homologation)
+    # Só roda se o build e os testes passaram, e apenas em push na homologation
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/homologation'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Criar e enviar tag rc
+        env:
+          # Tipo de incremento da versão base: major, minor ou patch (padrão: minor).
+          # Para mudar: Settings > Secrets and variables > Actions > Variables > RC_BUMP
+          BUMP: ${{ vars.RC_BUMP || 'minor' }}
+        run: |
+          set -euo pipefail
+
+          git fetch --tags --force
+
+          # Se este commit já tem uma tag rc, não cria outra.
+          if git tag --points-at HEAD | grep -qE -- '-rc\.[0-9]+$'; then
+            echo "O commit já possui tag rc. Nada a fazer."
+            exit 0
+          fi
+
+          # Última versão estável (vX.Y.Z, sem sufixo), criada na main.
+          last_stable=$(git tag --list 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1 || true)
+
+          if [ -z "$last_stable" ]; then
+            base="0.1.0"
+          else
+            IFS='.' read -r major minor patch <<< "${last_stable#v}"
+            case "$BUMP" in
+              major) base="$((major + 1)).0.0" ;;
+              minor) base="${major}.$((minor + 1)).0" ;;
+              patch) base="${major}.${minor}.$((patch + 1))" ;;
+              *) echo "RC_BUMP inválido: $BUMP (use major, minor ou patch)"; exit 1 ;;
+            esac
+          fi
+
+          # Próximo número de rc para essa versão base.
+          last_rc=$(git tag --list "v${base}-rc.*" | sed -E 's/.*-rc\.//' | sort -n | tail -n1 || true)
+          next_rc=$(( ${last_rc:-0} + 1 ))
+
+          tag="v${base}-rc.${next_rc}"
+          echo "Criando tag $tag"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git tag -a "$tag" -m "Release candidate ${next_rc} da v${base}"
+          git push origin "$tag"
