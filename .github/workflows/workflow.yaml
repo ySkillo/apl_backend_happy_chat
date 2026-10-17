@@ -8,9 +8,10 @@ on:
   workflow_dispatch:
 
 # Cancela execuções antigas da mesma branch/PR quando chega um commit novo
+# (exceto na main, para nunca perder a criação da tag de release)
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 permissions:
   contents: read
@@ -152,4 +153,75 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git tag -a "$tag" -m "Release candidate ${next_rc} da v${base}"
+          git push origin "$tag"
+
+  tag-release:
+    name: Tag final (main)
+    # Só roda se o build e os testes passaram, e apenas em push na main
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Criar e enviar tag final
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          git fetch --tags --force
+
+          # Descobre o PR que gerou este commit na main.
+          pr=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" \
+                 --jq '[.[] | select(.base.ref == "main")][0] // empty')
+
+          if [ -z "$pr" ]; then
+            echo "Commit sem Pull Request associado. Nada a fazer."
+            exit 0
+          fi
+
+          head_branch=$(jq -r '.head.ref' <<< "$pr")
+
+          # Só branches ReleaseDDMMAA geram tag final.
+          if [[ ! "$head_branch" =~ ^Release[0-9]{6}$ ]]; then
+            echo "Branch '$head_branch' não é uma Release. Nada a fazer."
+            exit 0
+          fi
+
+          # Se este commit já tem tag final, não cria outra.
+          if git tag --points-at HEAD | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "O commit já possui tag final. Nada a fazer."
+            exit 0
+          fi
+
+          # Versão final = versão base das rcs ainda sem tag final
+          # (ex.: existe v1.1.0-rc.3 mas não existe v1.1.0 -> cria v1.1.0).
+          tag=""
+          for base in $(git tag --list 'v*-rc.*' | sed -E 's/-rc\.[0-9]+$//' \
+                          | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -Vu); do
+            if ! git rev-parse -q --verify "refs/tags/$base" > /dev/null; then
+              tag="$base"
+            fi
+          done
+
+          if [ -z "$tag" ]; then
+            echo "Nenhuma tag rc pendente de release. Crie a tag final manualmente."
+            exit 1
+          fi
+
+          echo "Criando tag $tag a partir de $head_branch"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git tag -a "$tag" -m "Release ${tag} (${head_branch})" "$GITHUB_SHA"
           git push origin "$tag"
