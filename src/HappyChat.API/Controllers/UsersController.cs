@@ -1,5 +1,5 @@
-using HappyChat.Application.DTOs;
-using HappyChat.Application.Interfaces;
+using HappyChat.Application.Users.DTOs;
+using HappyChat.Application.Users.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

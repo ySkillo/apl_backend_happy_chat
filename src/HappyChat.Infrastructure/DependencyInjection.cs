@@ -1,8 +1,8 @@
-using HappyChat.Application.Interfaces;
-using HappyChat.Domain.Interface;
-using HappyChat.Infrastructure.Repositories;
-using HappyChat.Infrastructure.Services;
-using HappyChat.Infrastructure.Settings;
+using HappyChat.Application.Auth.Interfaces;
+using HappyChat.Domain.Users.Interfaces;
+using HappyChat.Infrastructure.Auth.Services;
+using HappyChat.Infrastructure.Auth.Settings;
+using HappyChat.Infrastructure.Users.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HappyChat.Infrastructure;
