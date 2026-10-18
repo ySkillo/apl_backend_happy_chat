@@ -8,7 +8,7 @@ public class CreateUserRequest
     [StringLength(100, MinimumLength = 2)]
     public string Name { get; set; } = string.Empty;
     [Required]
-    [StringLength(8, MinimumLength = 3)]
+    [StringLength(15, MinimumLength = 3)]
     public string Perfil { get; set; } = string.Empty;
     [Required]
     [EmailAddress]
