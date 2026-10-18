@@ -12,11 +12,13 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly IEmailNotifier _emailNotifier;
 
-    public UserService(IUserRepository userRepository, IPasswordHasher passwordHasher)
+    public UserService(IUserRepository userRepository, IPasswordHasher passwordHasher, IEmailNotifier emailNotifier)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
+        _emailNotifier = emailNotifier;
     }
 
     public async Task<UserResponse> RegisterAsync(CreateUserRequest request)
@@ -43,7 +45,7 @@ public class UserService : IUserService
         };
 
         await _userRepository.AddAsync(user);
-
+        await _emailNotifier.SendAccountOpeningAsync(user.Email, user.Name);
         return user.ToResponse();
     }
 

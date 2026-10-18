@@ -43,7 +43,7 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddHealthChecks();
 
 builder.Services.AddApplication();
-builder.Services.AddInfrastructure(jwtSettings);
+builder.Services.AddInfrastructure(jwtSettings, builder.Configuration);
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
