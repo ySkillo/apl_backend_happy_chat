@@ -28,6 +28,20 @@ dotnet run --project src/HappyChat.API
 
 O envio de e-mails (ex.: boas-vindas no cadastro) é feito pelo [email-service](https://github.com/ySkillo/email-service), uma API externa. Para que o e-mail seja enviado, suba-o antes, seguindo o README dele (por padrão em `http://localhost:5290`). Se ele estiver fora do ar, o cadastro continua funcionando e a falha é apenas registrada em log.
 
+### Configurando o email-service
+
+As credenciais SMTP ficam no **email-service**, não no HappyChat. No repositório do email-service, configure-as com `user-secrets`:
+
+```bash
+cd src/EmailService.API
+dotnet user-secrets init
+dotnet user-secrets set "Smtp:User" "seuemail@gmail.com"
+dotnet user-secrets set "Smtp:Password" "senha-de-app-do-gmail"
+dotnet user-secrets set "Smtp:FromAddress" "seuemail@gmail.com"
+```
+
+> No Gmail, use uma [senha de app](https://support.google.com/accounts/answer/185833), não a senha normal da conta.
+
 A API sobe em `https://localhost:8081` (ou `http://localhost:8080`).
 Em ambiente de desenvolvimento:
 

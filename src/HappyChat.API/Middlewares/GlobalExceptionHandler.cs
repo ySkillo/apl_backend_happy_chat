@@ -20,6 +20,8 @@ public class GlobalExceptionHandler : IExceptionHandler
             EmailAlreadyRegisteredException => (StatusCodes.Status409Conflict, "E-mail já cadastrado"),
             PerfilAlreadyRegisteredException => (StatusCodes.Status409Conflict, "Perfil já cadastrado"),
             InvalidCredentialsException => (StatusCodes.Status401Unauthorized, "Credenciais inválidas"),
+            TooManyVerificationAttemptsException => (StatusCodes.Status429TooManyRequests, "Muitas tentativas"),
+            EmailDeliveryFailedException => (StatusCodes.Status503ServiceUnavailable, "Falha ao enviar e-mail"),
             DomainException => (StatusCodes.Status400BadRequest, "Regra de negócio violada"),
             _ => (0, string.Empty)
         };

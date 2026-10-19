@@ -17,15 +17,28 @@ public class UsersController : ControllerBase
         _userService = userService;
     }
 
-    /// <summary>Cadastra um novo usuário.</summary>
+    /// <summary>Inicia o cadastro: envia um código de 6 dígitos por e-mail.</summary>
     [HttpPost]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+    public async Task<IActionResult> Register(CreateUserRequest request)
+    {
+        await _userService.StartRegistrationAsync(request);
+        return Accepted(new { message = "Enviamos um código de verificação para o seu e-mail." });
+    }
+
+    /// <summary>Confirma o código e cria a conta.</summary>
+    [HttpPost("verify")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(UserResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<UserResponse>> Register(CreateUserRequest request)
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    public async Task<ActionResult<UserResponse>> Verify(VerifyEmailRequest request)
     {
-        var user = await _userService.RegisterAsync(request);
+        var user = await _userService.ConfirmRegistrationAsync(request);
         return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
     }
 
