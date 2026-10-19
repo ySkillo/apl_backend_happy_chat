@@ -4,7 +4,8 @@ namespace HappyChat.Application.Users.Interfaces;
 
 public interface IUserService
 {
-    Task<UserResponse> RegisterAsync(CreateUserRequest request);
+    Task StartRegistrationAsync(CreateUserRequest request);
+    Task<UserResponse> ConfirmRegistrationAsync(VerifyEmailRequest request);
     Task<UserResponse?> GetByIdAsync(Guid id);
     Task<IReadOnlyList<UserResponse>> GetAllAsync();
 }

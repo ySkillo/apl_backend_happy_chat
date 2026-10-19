@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using HappyChat.Application.Users.Interfaces;
+using HappyChat.Domain.Users.Exceptions;
 using Microsoft.Extensions.Logging;
 
 namespace HappyChat.Infrastructure.Email;
@@ -19,7 +20,7 @@ public class EmailServiceClient : IEmailNotifier
         var payload = new
         {
             to,
-            templateType = "AccountOpening", // o email-service usa JsonStringEnumConverter
+            templateType = "AccountOpening",
             data = new Dictionary<string, string>
             {
                 ["Nome"] = name,
@@ -30,12 +31,36 @@ public class EmailServiceClient : IEmailNotifier
         try
         {
             var response = await _http.PostAsJsonAsync("api/email/send", payload, ct);
-            response.EnsureSuccessStatusCode(); // o serviço responde 202 Accepted
+            response.EnsureSuccessStatusCode();
         }
         catch (Exception ex)
         {
-            // Falha no e-mail não deve derrubar o cadastro do usuário.
             _logger.LogError(ex, "Falha ao chamar o email-service para {To}", to);
+        }
+    }
+    
+    public async Task SendVerificationCodeAsync(string to, string name, string code, CancellationToken ct = default)
+    {
+        var payload = new
+        {
+            to,
+            templateType = "VerificationCode",
+            data = new Dictionary<string, string>
+            {
+                ["Nome"] = name,
+                ["Codigo"] = code
+            }
+        };
+
+        try
+        {
+            var response = await _http.PostAsJsonAsync("api/email/send", payload, ct);
+            response.EnsureSuccessStatusCode();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Falha ao enviar código de verificação para {To}", to);
+            throw new EmailDeliveryFailedException();
         }
     }
 }
