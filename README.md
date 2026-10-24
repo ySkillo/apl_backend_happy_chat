@@ -154,6 +154,11 @@ Para consultar os dados direto no banco do container:
 ```bash
 docker exec -it happychat-db psql -U happy -d happychat -c 'SELECT "Id","Perfil","Email","IsActive" FROM users;'
 ```
+Para abrir uma interface:
+
+```bash
+docker exec -it happychat-db psql -U happy -d happychat
+```
 
 ## Endpoints
 
