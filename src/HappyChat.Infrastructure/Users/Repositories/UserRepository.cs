@@ -37,4 +37,9 @@ public class UserRepository(AppDbContext db) : IUserRepository
 
     public async Task<IReadOnlyList<User>> GetAllAsync() =>
         await db.Users.AsNoTracking().ToListAsync();
+
+    public async Task<bool> SetOnlineAsync(long id, bool isOnline) =>
+        await db.Users
+            .Where(u => u.Id == id)
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.IsOnline, isOnline)) > 0;
 }

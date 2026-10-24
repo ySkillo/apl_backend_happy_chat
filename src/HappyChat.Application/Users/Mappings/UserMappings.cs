@@ -13,6 +13,7 @@ public static class UserMappings
         Perfil =  user.Perfil,
         Email = user.Email,
         IsActive = user.IsActive,
+        IsOnline = user.IsOnline,
         CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(
             DateTime.SpecifyKind(user.CreatedAt, DateTimeKind.Utc),
             TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo")

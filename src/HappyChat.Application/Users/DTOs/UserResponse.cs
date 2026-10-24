@@ -21,6 +21,9 @@ public class UserResponse
     /// <summary>Indica se a conta está ativa. Contas inativas não conseguem fazer login.</summary>
     public bool IsActive { get; set; }
 
+    /// <summary>Indica se o usuário está com a sessão aberta (true após o login, false após o logout).</summary>
+    public bool IsOnline { get; set; }
+
     /// <summary>Data e hora (UTC) de criação da conta.</summary>
     public DateTime CreatedAt { get; set; }
 }

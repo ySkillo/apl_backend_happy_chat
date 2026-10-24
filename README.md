@@ -128,10 +128,10 @@ EmailService__BaseUrl=...
 
 O projeto usa PostgreSQL com Entity Framework Core. O `AppDbContext` fica em `HappyChat.Infrastructure/Persistence` e o histórico do schema fica em `HappyChat.Infrastructure/Migrations`, versionado junto com o código.
 
-| Tabela                  | Descrição                                                                 |
-| ----------------------- | ------------------------------------------------------------------------- |
-| `users`                 | Usuários cadastrados. `Id` é auto incremento; `Email` e `Perfil` são únicos |
-| `pending_registrations` | Cadastros aguardando a confirmação do código enviado por e-mail           |
+| Tabela                  | Descrição                                                                                                                                      |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `users`                 | Usuários cadastrados. `Id` é auto incremento; `Email` e `Perfil` são únicos. `IsActive` indica conta habilitada e `IsOnline`, sessão aberta |
+| `pending_registrations` | Cadastros aguardando a confirmação do código enviado por e-mail                                                                                |
 
 Comandos (execute na raiz do repositório):
 
@@ -152,7 +152,7 @@ dotnet ef database drop -p src/HappyChat.Infrastructure -s src/HappyChat.API
 Para consultar os dados direto no banco do container:
 
 ```bash
-docker exec -it happychat-db psql -U happy -d happychat -c 'SELECT "Id","Perfil","Email","IsActive" FROM users;'
+docker exec -it happychat-db psql -U happy -d happychat -c 'SELECT "Id","Perfil","Email","IsActive","IsOnline" FROM users;'
 ```
 Para abrir uma interface:
 
@@ -164,16 +164,24 @@ docker exec -it happychat-db psql -U happy -d happychat
 
 O cadastro acontece em duas etapas: primeiro a API envia um código de verificação para o e-mail informado; a conta só é criada depois que o código é confirmado.
 
-| Método | Rota                | Acesso      | Descrição                                                  |
-| ------ | ------------------- | ----------- | ---------------------------------------------------------- |
-| POST   | `/api/users`        | Público     | Inicia o cadastro e envia o código de verificação por e-mail |
+| Método | Rota                | Acesso      | Descrição                                                       |
+| ------ | ------------------- | ----------- | --------------------------------------------------------------- |
+| POST   | `/api/users`        | Público     | Inicia o cadastro e envia o código de verificação por e-mail    |
 | POST   | `/api/users/verify` | Público     | Confirma o código, cria a conta e envia o e-mail de boas-vindas |
-| GET    | `/api/users`        | Autenticado | Lista os usuários                                          |
-| GET    | `/api/users/{id}`   | Autenticado | Busca um usuário pelo id (numérico)                        |
-| POST   | `/api/auth/login`   | Público     | Autentica e retorna o JWT                                  |
-| GET    | `/api/auth/me`      | Autenticado | Retorna o usuário do token                                 |
+| GET    | `/api/users`        | Autenticado | Lista os usuários                                               |
+| GET    | `/api/users/{id}`   | Autenticado | Busca um usuário pelo id (numérico)                             |
+| POST   | `/api/auth/login`   | Público     | Autentica, marca o usuário como online e retorna o JWT          |
+| POST   | `/api/auth/logout`  | Autenticado | Encerra a sessão e marca o usuário como offline                 |
+| GET    | `/api/auth/me`      | Autenticado | Retorna o usuário do token                                      |
 
 Para chamar as rotas autenticadas no Swagger, faça login em `/api/auth/login`, copie o token retornado, clique em **Authorize** e cole apenas o JWT (sem o prefixo `Bearer`).
+
+### Sessão (login e logout)
+
+- `POST /api/auth/login` marca `isOnline = true` e devolve o token JWT.
+- `POST /api/auth/logout` (com o token no header `Authorization`) marca `isOnline = false` e responde `204`.
+- O `isActive` **não** é alterado pelo logout: ele indica se a conta está habilitada, e contas inativas não conseguem fazer login.
+- O token **não é invalidado** no servidor: o cliente deve descartá-lo ao fazer logout, e ele continua tecnicamente válido até expirar (`Jwt:ExpireMinutes`).
 
 ## Arquitetura
 
