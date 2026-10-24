@@ -73,11 +73,11 @@ public class UsersController : ControllerBase
     /// <response code="200">Usuário encontrado.</response>
     /// <response code="401">Token ausente, inválido ou expirado.</response>
     /// <response code="404">Nenhum usuário com este id.</response>
-    [HttpGet("{id:guid}")]
+    [HttpGet("{id:long}")]
     [ProducesResponseType(typeof(UserResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<UserResponse>> GetById(Guid id)
+    public async Task<ActionResult<UserResponse>> GetById(long id)
     {
         var user = await _userService.GetByIdAsync(id);
         return user is null ? NotFound() : Ok(user);

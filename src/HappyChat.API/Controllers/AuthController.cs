@@ -63,7 +63,7 @@ public class AuthController : ControllerBase
         var sub = User.FindFirstValue(ClaimTypes.NameIdentifier)
                   ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
-        if (!Guid.TryParse(sub, out var id))
+        if (!long.TryParse(sub, out var id))
             return Unauthorized();
 
         var user = await _userService.GetByIdAsync(id);
