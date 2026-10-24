@@ -6,6 +6,6 @@ public interface IUserService
 {
     Task StartRegistrationAsync(CreateUserRequest request);
     Task<UserResponse> ConfirmRegistrationAsync(VerifyEmailRequest request);
-    Task<UserResponse?> GetByIdAsync(Guid id);
+    Task<UserResponse?> GetByIdAsync(long id);
     Task<IReadOnlyList<UserResponse>> GetAllAsync();
 }

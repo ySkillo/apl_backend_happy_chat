@@ -39,6 +39,14 @@ builder.Services.AddSwaggerGen(c =>
     {
         [new OpenApiSecuritySchemeReference("Bearer", document)] = []
     });
+    
+    var xmlFiles = new[] { "HappyChat.API.xml", "HappyChat.Application.xml" };
+    foreach (var xml in xmlFiles)
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, xml);
+        if (File.Exists(path))
+            c.IncludeXmlComments(path, includeControllerXmlComments: true);
+    }
 });
 builder.Services.AddHealthChecks();
 

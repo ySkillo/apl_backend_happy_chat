@@ -9,8 +9,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HappyChat.API.Controllers;
 
+/// <summary>Autenticação e identificação do usuário logado.</summary>
 [ApiController]
 [Route("api/[controller]")]
+[Produces("application/json")]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
@@ -23,11 +25,21 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>Autentica o usuário e devolve um token JWT.</summary>
+    /// <remarks>
+    /// Use o valor de <c>accessToken</c> no header <c>Authorization: Bearer {token}</c>
+    /// para acessar os endpoints protegidos. No Swagger, cole o token no botão
+    /// <b>Authorize</b> (sem o prefixo "Bearer ").
+    /// </remarks>
+    /// <param name="request">E-mail e senha do usuário.</param>
+    /// <response code="200">Login realizado: token JWT, data de expiração e dados do usuário.</response>
+    /// <response code="400">Dados inválidos (campo obrigatório ausente ou formato incorreto).</response>
+    /// <response code="401">E-mail ou senha inválidos, ou conta inativa.</response>
     [HttpPost("login")]
     [AllowAnonymous]
+    [Consumes("application/json")]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<AuthResponse>> Login(LoginRequest request)
     {
         var response = await _authService.LoginAsync(request);
@@ -35,6 +47,12 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>Devolve o usuário dono do token enviado.</summary>
+    /// <remarks>
+    /// Útil para o front recuperar os dados do usuário logado a partir do token,
+    /// por exemplo ao reabrir o app. Requer token JWT válido.
+    /// </remarks>
+    /// <response code="200">Dados do usuário autenticado.</response>
+    /// <response code="401">Token ausente, inválido ou expirado, ou usuário do token não existe mais.</response>
     [HttpGet("me")]
     [Authorize]
     [ProducesResponseType(typeof(UserResponse), StatusCodes.Status200OK)]
@@ -45,7 +63,7 @@ public class AuthController : ControllerBase
         var sub = User.FindFirstValue(ClaimTypes.NameIdentifier)
                   ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
-        if (!Guid.TryParse(sub, out var id))
+        if (!long.TryParse(sub, out var id))
             return Unauthorized();
 
         var user = await _userService.GetByIdAsync(id);

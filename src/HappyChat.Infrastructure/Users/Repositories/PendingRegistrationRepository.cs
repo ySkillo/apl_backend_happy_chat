@@ -1,41 +1,39 @@
 using HappyChat.Domain.Users.Entities;
 using HappyChat.Domain.Users.Interfaces;
+using HappyChat.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+
 namespace HappyChat.Infrastructure.Users.Repositories;
 
-public class PendingRegistrationRepository : IPendingRegistrationRepository
+public class PendingRegistrationRepository(AppDbContext db) : IPendingRegistrationRepository
 {
-    private readonly Dictionary<string, PendingRegistration> _items =
-        new(StringComparer.OrdinalIgnoreCase);
-    private readonly object _lock = new();
-
-    public Task SaveAsync(PendingRegistration pending)
+    public async Task SaveAsync(PendingRegistration pending)
     {
-        lock (_lock) { _items[pending.Email] = pending; }
-        return Task.CompletedTask;
+        var existing = await db.PendingRegistrations.FindAsync(pending.Email);
+        if (existing is null)
+            db.PendingRegistrations.Add(pending);
+        else
+            db.Entry(existing).CurrentValues.SetValues(pending);
+        await db.SaveChangesAsync();
     }
 
-    public Task<PendingRegistration?> GetByEmailAsync(string email)
+    public Task<PendingRegistration?> GetByEmailAsync(string email) =>
+        db.PendingRegistrations.AsNoTracking().FirstOrDefaultAsync(p => p.Email == email.ToLower());
+
+    public async Task<int> RegisterFailedAttemptAsync(string email)
     {
-        lock (_lock)
-        {
-            _items.TryGetValue(email, out var pending);
-            return Task.FromResult(pending);
-        }
+        // Incremento atômico no banco, sem race condition entre requisições.
+        var rows = await db.PendingRegistrations
+            .Where(p => p.Email == email.ToLower())
+            .ExecuteUpdateAsync(s => s.SetProperty(p => p.Attempts, p => p.Attempts + 1));
+        if (rows == 0) return 0;
+
+        return await db.PendingRegistrations
+            .Where(p => p.Email == email.ToLower())
+            .Select(p => p.Attempts)
+            .FirstAsync();
     }
 
-    public Task<int> RegisterFailedAttemptAsync(string email)
-    {
-        lock (_lock)
-        {
-            if (!_items.TryGetValue(email, out var pending)) return Task.FromResult(0);
-            pending.Attempts++;
-            return Task.FromResult(pending.Attempts);
-        }
-    }
-
-    public Task RemoveAsync(string email)
-    {
-        lock (_lock) { _items.Remove(email); }
-        return Task.CompletedTask;
-    }
+    public Task RemoveAsync(string email) =>
+        db.PendingRegistrations.Where(p => p.Email == email.ToLower()).ExecuteDeleteAsync();
 }

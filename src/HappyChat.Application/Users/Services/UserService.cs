@@ -122,7 +122,7 @@ public class UserService : IUserService
         return user.ToResponse();
     }
 
-    public async Task<UserResponse?> GetByIdAsync(Guid id)
+    public async Task<UserResponse?> GetByIdAsync(long id)
     {
         var user = await _userRepository.GetByIdAsync(id);
         return user is null ? null : user.ToResponse();
