@@ -59,14 +59,39 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<UserResponse>> Me()
     {
-        // Dependendo do mapeamento de claims, o "sub" chega com um dos dois nomes.
-        var sub = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                  ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub);
-
-        if (!long.TryParse(sub, out var id))
+        if (!TryGetUserId(out var id))
             return Unauthorized();
 
         var user = await _userService.GetByIdAsync(id);
         return user is null ? Unauthorized() : Ok(user);
+    }
+
+    /// <summary>Encerra a sessão do usuário logado.</summary>
+    /// <remarks>
+    /// Marca o usuário como offline (<c>isOnline = false</c>). O front deve descartar o token;
+    /// ele continua tecnicamente válido até expirar. Requer token JWT válido.
+    /// </remarks>
+    /// <response code="204">Sessão encerrada.</response>
+    /// <response code="401">Token ausente, inválido ou expirado.</response>
+    [HttpPost("logout")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Logout()
+    {
+        if (!TryGetUserId(out var id))
+            return Unauthorized();
+
+        await _authService.LogoutAsync(id);
+        return NoContent();
+    }
+
+    private bool TryGetUserId(out long id)
+    {
+        // Dependendo do mapeamento de claims, o "sub" chega com um dos dois nomes.
+        var sub = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                  ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+
+        return long.TryParse(sub, out id);
     }
 }

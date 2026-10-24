@@ -39,6 +39,9 @@ public class AuthService : IAuthService
         if (!passwordOk || !user.IsActive)
             throw new InvalidCredentialsException();
 
+        await _userRepository.SetOnlineAsync(user.Id, true);
+        user.IsOnline = true;
+
         var token = _tokenService.GenerateToken(user);
 
         return new AuthResponse
@@ -48,4 +51,7 @@ public class AuthService : IAuthService
             User = user.ToResponse()
         };
     }
+
+    public async Task LogoutAsync(long userId) =>
+        await _userRepository.SetOnlineAsync(userId, false);
 }
