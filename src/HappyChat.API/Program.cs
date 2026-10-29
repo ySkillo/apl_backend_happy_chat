@@ -50,6 +50,19 @@ builder.Services.AddSwaggerGen(c =>
 });
 builder.Services.AddHealthChecks();
 
+// CORS: só as origens listadas em "Cors:AllowedOrigins" podem chamar a API pelo navegador.
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? Array.Empty<string>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod());
+});
+
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(jwtSettings, builder.Configuration);
 
@@ -75,6 +88,10 @@ builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 var app = builder.Build();
+
+// Antes do exception handler e da autenticação: assim o preflight (OPTIONS) passa
+// e até as respostas de erro (401, 500) levam os headers de CORS.
+app.UseCors("Frontend");
 
 app.UseExceptionHandler();
 

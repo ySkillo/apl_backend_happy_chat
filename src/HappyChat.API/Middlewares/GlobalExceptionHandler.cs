@@ -22,6 +22,9 @@ public class GlobalExceptionHandler : IExceptionHandler
             InvalidCredentialsException => (StatusCodes.Status401Unauthorized, "Credenciais inválidas"),
             TooManyVerificationAttemptsException => (StatusCodes.Status429TooManyRequests, "Muitas tentativas"),
             EmailDeliveryFailedException => (StatusCodes.Status503ServiceUnavailable, "Falha ao enviar e-mail"),
+            AlreadyFollowingException => (StatusCodes.Status409Conflict, "Você já segue este usuário"),
+            UserNotFoundException => (StatusCodes.Status404NotFound, "Usuário não encontrado"),
+            NotFollowingException => (StatusCodes.Status404NotFound, "Follow não encontrado"),
             DomainException => (StatusCodes.Status400BadRequest, "Regra de negócio violada"),
             _ => (0, string.Empty)
         };

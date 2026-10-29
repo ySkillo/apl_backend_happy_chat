@@ -7,7 +7,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 {
     public DbSet<User> Users => Set<User>();
     public DbSet<PendingRegistration> PendingRegistrations => Set<PendingRegistration>();
-
+    public DbSet<Follow> Follows => Set<Follow>();
+    
     protected override void OnModelCreating(ModelBuilder b)
     {
         b.Entity<User>(e =>
@@ -28,6 +29,26 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasKey(p => p.Email);
             e.Property(p => p.Email).HasMaxLength(254);
             e.HasIndex(p => p.ExpiresAt);
+        });
+
+        b.Entity<Follow>(e =>
+        {
+            e.ToTable("follows", t =>
+                t.HasCheckConstraint("ck_follows_no_self_follow", "\"FollowerId\" <> \"FollowedId\""));
+
+            e.HasKey(f => new { f.FollowerId, f.FollowedId });
+
+            e.HasOne(f => f.Follower)
+                .WithMany(u => u.Following)
+                .HasForeignKey(f => f.FollowerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasOne(f => f.Followed)
+                .WithMany(u => u.Followers)
+                .HasForeignKey(f => f.FollowedId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasIndex(f => f.FollowedId).HasDatabaseName("ix_follows_followed_id");
         });
     }
 }
