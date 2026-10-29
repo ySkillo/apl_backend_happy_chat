@@ -22,6 +22,28 @@ namespace HappyChat.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("HappyChat.Domain.Users.Entities.Follow", b =>
+                {
+                    b.Property<long>("FollowerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("FollowedId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("FollowerId", "FollowedId");
+
+                    b.HasIndex("FollowedId")
+                        .HasDatabaseName("ix_follows_followed_id");
+
+                    b.ToTable("follows", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_follows_no_self_follow", "\"FollowerId\" <> \"FollowedId\"");
+                        });
+                });
+
             modelBuilder.Entity("HappyChat.Domain.Users.Entities.PendingRegistration", b =>
                 {
                     b.Property<string>("Email")
@@ -107,6 +129,32 @@ namespace HappyChat.Infrastructure.Migrations
                         .HasDatabaseName("ix_users_perfil");
 
                     b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("HappyChat.Domain.Users.Entities.Follow", b =>
+                {
+                    b.HasOne("HappyChat.Domain.Users.Entities.User", "Followed")
+                        .WithMany("Followers")
+                        .HasForeignKey("FollowedId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HappyChat.Domain.Users.Entities.User", "Follower")
+                        .WithMany("Following")
+                        .HasForeignKey("FollowerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Followed");
+
+                    b.Navigation("Follower");
+                });
+
+            modelBuilder.Entity("HappyChat.Domain.Users.Entities.User", b =>
+                {
+                    b.Navigation("Followers");
+
+                    b.Navigation("Following");
                 });
 #pragma warning restore 612, 618
         }

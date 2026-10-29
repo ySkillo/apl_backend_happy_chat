@@ -1,3 +1,5 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using HappyChat.Application.Users.DTOs;
 using HappyChat.Application.Users.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -13,12 +15,14 @@ namespace HappyChat.API.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
+    private readonly IFollowService _followService;
 
-    public UsersController(IUserService userService)
+    public UsersController(IUserService userService, IFollowService followService)
     {
         _userService = userService;
+        _followService = followService;
     }
-
+    
     /// <summary>Inicia o cadastro: envia um código de 6 dígitos por e-mail.</summary>
     /// <remarks>
     /// Nenhuma conta é criada nesta etapa: os dados ficam pendentes até a confirmação
@@ -94,5 +98,93 @@ public class UsersController : ControllerBase
     {
         var users = await _userService.GetAllAsync();
         return Ok(users);
+    }
+    
+    /// <summary>Passa a seguir um usuário.</summary>
+    /// <remarks>Requer token JWT válido. Quem segue é o usuário do token.</remarks>
+    /// <param name="id">Identificador do usuário a ser seguido.</param>
+    /// <response code="204">Agora você segue este usuário.</response>
+    /// <response code="400">Tentativa de seguir a si mesmo.</response>
+    /// <response code="401">Token ausente, inválido ou expirado.</response>
+    /// <response code="404">Usuário a ser seguido não existe.</response>
+    /// <response code="409">Você já segue este usuário.</response>
+    [HttpPost("{id:long}/follow")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Follow(long id)
+    {
+        if (!TryGetUserId(out var followerId))
+            return Unauthorized();
+
+        await _followService.FollowAsync(followerId, id);
+        return NoContent();
+    }
+
+    /// <summary>Deixa de seguir um usuário.</summary>
+    /// <remarks>Requer token JWT válido.</remarks>
+    /// <param name="id">Identificador do usuário a deixar de seguir.</param>
+    /// <response code="204">Você deixou de seguir este usuário.</response>
+    /// <response code="401">Token ausente, inválido ou expirado.</response>
+    /// <response code="404">Você não segue este usuário.</response>
+    [HttpDelete("{id:long}/follow")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Unfollow(long id)
+    {
+        if (!TryGetUserId(out var followerId))
+            return Unauthorized();
+
+        await _followService.UnfollowAsync(followerId, id);
+        return NoContent();
+    }
+
+    private bool TryGetUserId(out long id)
+    {
+        var sub = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                  ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+
+        return long.TryParse(sub, out id);
+    }
+    
+    /// <summary>Lista quem segue o usuário (seguidores).</summary>
+    /// <remarks>Requer token JWT válido. Paginado, do follow mais recente para o mais antigo.</remarks>
+    /// <param name="id">Identificador do usuário.</param>
+    /// <param name="page">Número da página, começando em 1.</param>
+    /// <param name="pageSize">Itens por página (padrão 20, máximo 50).</param>
+    /// <response code="200">Página de seguidores (vazia se não houver nenhum).</response>
+    /// <response code="401">Token ausente, inválido ou expirado.</response>
+    /// <response code="404">Usuário não existe.</response>
+    [HttpGet("{id:long}/followers")]
+    [ProducesResponseType(typeof(PagedResponse<FollowUserResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<PagedResponse<FollowUserResponse>>> GetFollowers(
+        long id, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        var result = await _followService.GetFollowersAsync(id, page, pageSize);
+        return Ok(result);
+    }
+
+    /// <summary>Lista quem o usuário segue.</summary>
+    /// <remarks>Requer token JWT válido. Paginado, do follow mais recente para o mais antigo.</remarks>
+    /// <param name="id">Identificador do usuário.</param>
+    /// <param name="page">Número da página, começando em 1.</param>
+    /// <param name="pageSize">Itens por página (padrão 20, máximo 50).</param>
+    /// <response code="200">Página de usuários seguidos (vazia se não seguir ninguém).</response>
+    /// <response code="401">Token ausente, inválido ou expirado.</response>
+    /// <response code="404">Usuário não existe.</response>
+    [HttpGet("{id:long}/following")]
+    [ProducesResponseType(typeof(PagedResponse<FollowUserResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<PagedResponse<FollowUserResponse>>> GetFollowing(
+        long id, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        var result = await _followService.GetFollowingAsync(id, page, pageSize);
+        return Ok(result);
     }
 }
