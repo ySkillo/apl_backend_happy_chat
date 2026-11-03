@@ -1,3 +1,4 @@
+using HappyChat.Domain.Follows.Entities;
 using HappyChat.Domain.Users.Entities;
 using Microsoft.EntityFrameworkCore;
 

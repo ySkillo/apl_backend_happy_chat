@@ -1,12 +1,15 @@
-using HappyChat.Application.Users.DTOs;
-using HappyChat.Application.Users.Interfaces;
-using HappyChat.Application.Users.Mappings;
+using HappyChat.Application.Common.DTOs;
+using HappyChat.Application.Follows.DTOs;
+using HappyChat.Application.Follows.Interfaces;
+using HappyChat.Application.Follows.Mappings;
 using HappyChat.Domain.Common;
-using HappyChat.Domain.Users.Entities;
+using HappyChat.Domain.Follows.Entities;
+using HappyChat.Domain.Follows.Exceptions;
+using HappyChat.Domain.Follows.Interfaces;
 using HappyChat.Domain.Users.Exceptions;
 using HappyChat.Domain.Users.Interfaces;
 
-namespace HappyChat.Application.Users.Services;
+namespace HappyChat.Application.Follows.Services;
 
 public class FollowService : IFollowService
 {

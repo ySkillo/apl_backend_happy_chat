@@ -1,5 +1,6 @@
 using HappyChat.Application.Auth.Exceptions;
 using HappyChat.Domain.Common;
+using HappyChat.Domain.Follows.Exceptions;
 using HappyChat.Domain.Users.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;

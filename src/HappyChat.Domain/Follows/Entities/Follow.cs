@@ -1,4 +1,6 @@
-namespace HappyChat.Domain.Users.Entities;
+using HappyChat.Domain.Users.Entities;
+
+namespace HappyChat.Domain.Follows.Entities;
 
 public class Follow
 {

@@ -1,7 +1,7 @@
 using HappyChat.Domain.Common;
-using HappyChat.Domain.Users.Entities;
+using HappyChat.Domain.Follows.Entities;
 
-namespace HappyChat.Domain.Users.Interfaces;
+namespace HappyChat.Domain.Follows.Interfaces;
 
 public interface IFollowRepository
 {

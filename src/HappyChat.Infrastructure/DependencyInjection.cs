@@ -1,9 +1,11 @@
 using HappyChat.Application.Auth.Interfaces;
 using HappyChat.Application.Users.Interfaces;
+using HappyChat.Domain.Follows.Interfaces;
 using HappyChat.Domain.Users.Interfaces;
 using HappyChat.Infrastructure.Auth.Services;
 using HappyChat.Infrastructure.Auth.Settings;
 using HappyChat.Infrastructure.Email;
+using HappyChat.Infrastructure.Follows.Repositories;
 using HappyChat.Infrastructure.Persistence;
 using HappyChat.Infrastructure.Users.Repositories;
 using Microsoft.EntityFrameworkCore;

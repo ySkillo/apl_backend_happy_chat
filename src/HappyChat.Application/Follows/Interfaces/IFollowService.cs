@@ -1,6 +1,7 @@
-using HappyChat.Application.Users.DTOs;
+using HappyChat.Application.Common.DTOs;
+using HappyChat.Application.Follows.DTOs;
 
-namespace HappyChat.Application.Users.Interfaces;
+namespace HappyChat.Application.Follows.Interfaces;
 
 public interface IFollowService
 {
