@@ -1,23 +1,29 @@
-using HappyChat.Application.Users.DTOs;
+using HappyChat.Application.Common.DTOs;
+using HappyChat.Application.Follows.DTOs;
+using HappyChat.Application.Follows.Interfaces;
+using HappyChat.Application.Follows.Mappings;
 using HappyChat.Application.Users.Interfaces;
-using HappyChat.Application.Users.Mappings;
 using HappyChat.Domain.Common;
-using HappyChat.Domain.Users.Entities;
+using HappyChat.Domain.Follows.Entities;
+using HappyChat.Domain.Follows.Exceptions;
+using HappyChat.Domain.Follows.Interfaces;
 using HappyChat.Domain.Users.Exceptions;
 using HappyChat.Domain.Users.Interfaces;
 
-namespace HappyChat.Application.Users.Services;
+namespace HappyChat.Application.Follows.Services;
 
 public class FollowService : IFollowService
 {
     private readonly IFollowRepository _followRepository;
     private readonly IUserRepository _userRepository;
+    private readonly IEmailNotifier _emailNotifier;
     private const int MaxPageSize = 50;
 
-    public FollowService(IFollowRepository followRepository, IUserRepository userRepository)
+    public FollowService(IFollowRepository followRepository, IUserRepository userRepository, IEmailNotifier emailNotifier)
     {
         _followRepository = followRepository;
         _userRepository = userRepository;
+        _emailNotifier =  emailNotifier;
     }
 
     public async Task FollowAsync(long followerId, long followedId)
@@ -25,8 +31,11 @@ public class FollowService : IFollowService
         if (followerId == followedId)
             throw new FollowingOneselfException();
         
-        if (await _userRepository.GetByIdAsync(followedId) is null)
-            throw new UserNotFoundException();
+        var followed = await _userRepository.GetByIdAsync(followedId)
+                       ?? throw new UserNotFoundException();
+
+        var follower = await _userRepository.GetByIdAsync(followerId)
+                       ?? throw new UserNotFoundException();
         
         if (await _followRepository.GetAsync(followerId, followedId) is not null)
             throw new AlreadyFollowingException();
@@ -36,6 +45,10 @@ public class FollowService : IFollowService
             FollowerId = followerId,
             FollowedId = followedId
         });
+
+        await _emailNotifier.SendNewFollowerAsync(
+            followed.Email, followed.Name,follower.Name, follower.Perfil
+            );
     }
 
     public async Task UnfollowAsync(long followerId, long followedId)

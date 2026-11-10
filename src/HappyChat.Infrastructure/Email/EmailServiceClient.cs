@@ -63,4 +63,30 @@ public class EmailServiceClient : IEmailNotifier
             throw new EmailDeliveryFailedException();
         }
     }
+
+    public async Task SendNewFollowerAsync(string to, string name, string seguidor, string perfil, CancellationToken ct = default)
+    {
+        
+        var payload = new
+        {
+            to,
+            templateType = "NewFollower",
+            data = new Dictionary<string, string>
+            {
+                ["Nome"] = name,
+                ["Seguidor"] = seguidor,
+                ["Perfil"] = perfil 
+            }
+        };
+        
+        try
+        {
+            var response = await _http.PostAsJsonAsync("api/email/send", payload, ct);
+            response.EnsureSuccessStatusCode();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Falha ao enviar email de seguidor para {To}", to);
+        }
+    }
 }

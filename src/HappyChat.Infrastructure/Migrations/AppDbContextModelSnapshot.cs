@@ -22,7 +22,7 @@ namespace HappyChat.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("HappyChat.Domain.Users.Entities.Follow", b =>
+            modelBuilder.Entity("HappyChat.Domain.Follows.Entities.Follow", b =>
                 {
                     b.Property<long>("FollowerId")
                         .HasColumnType("bigint");
@@ -131,7 +131,7 @@ namespace HappyChat.Infrastructure.Migrations
                     b.ToTable("users", (string)null);
                 });
 
-            modelBuilder.Entity("HappyChat.Domain.Users.Entities.Follow", b =>
+            modelBuilder.Entity("HappyChat.Domain.Follows.Entities.Follow", b =>
                 {
                     b.HasOne("HappyChat.Domain.Users.Entities.User", "Followed")
                         .WithMany("Followers")

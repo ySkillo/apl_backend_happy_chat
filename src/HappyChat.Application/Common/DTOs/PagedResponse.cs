@@ -1,4 +1,4 @@
-namespace HappyChat.Application.Users.DTOs;
+namespace HappyChat.Application.Common.DTOs;
 
 /// <summary>Página de resultados.</summary>
 public class PagedResponse<T>

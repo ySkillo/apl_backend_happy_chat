@@ -1,4 +1,4 @@
-namespace HappyChat.Application.Users.DTOs;
+namespace HappyChat.Application.Follows.DTOs;
 
 /// <summary>Usuário em uma lista de seguidores/seguidos.</summary>
 public class FollowUserResponse

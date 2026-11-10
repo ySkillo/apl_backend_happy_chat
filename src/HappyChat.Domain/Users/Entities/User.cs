@@ -1,3 +1,5 @@
+using HappyChat.Domain.Follows.Entities;
+
 namespace HappyChat.Domain.Users.Entities;
 
 public class User

@@ -1,7 +1,8 @@
-using HappyChat.Application.Users.DTOs;
+using HappyChat.Application.Follows.DTOs;
+using HappyChat.Domain.Follows.Entities;
 using HappyChat.Domain.Users.Entities;
 
-namespace HappyChat.Application.Users.Mappings;
+namespace HappyChat.Application.Follows.Mappings;
 
 public static class FollowMappings
 {

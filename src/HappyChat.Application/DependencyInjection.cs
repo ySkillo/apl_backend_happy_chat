@@ -1,5 +1,7 @@
 using HappyChat.Application.Auth.Interfaces;
 using HappyChat.Application.Auth.Services;
+using HappyChat.Application.Follows.Interfaces;
+using HappyChat.Application.Follows.Services;
 using HappyChat.Application.Users.Interfaces;
 using HappyChat.Application.Users.Services;
 using Microsoft.Extensions.DependencyInjection;

@@ -1,12 +1,12 @@
 using HappyChat.Domain.Common;
-using HappyChat.Domain.Users.Entities;
-using HappyChat.Domain.Users.Exceptions;
-using HappyChat.Domain.Users.Interfaces;
+using HappyChat.Domain.Follows.Entities;
+using HappyChat.Domain.Follows.Exceptions;
+using HappyChat.Domain.Follows.Interfaces;
 using HappyChat.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
-namespace HappyChat.Infrastructure.Users.Repositories;
+namespace HappyChat.Infrastructure.Follows.Repositories;
 
 public class FollowRepository(AppDbContext db) : IFollowRepository
 {

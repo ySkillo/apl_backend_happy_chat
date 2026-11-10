@@ -1,6 +1,6 @@
 using HappyChat.Domain.Common;
 
-namespace HappyChat.Domain.Users.Exceptions;
+namespace HappyChat.Domain.Follows.Exceptions;
 
 public class NotFollowingException : DomainException
 {
